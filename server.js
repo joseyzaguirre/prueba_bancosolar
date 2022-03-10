@@ -14,12 +14,13 @@ app.get('/usuarios', async (req, res) => {
 });
 
 app.get('/transferencias', async (req, res) => {
+    let transferencias
     try {
-        const transferencias = await getTransferencias();
-        res.send(transferencias)
+        transferencias = await getTransferencias();
     } catch (error) {
         return res.status(400).send(error.message)
     }
+    res.send(transferencias)
 });
 
 app.post('/usuario', async (req, res) => {
@@ -32,13 +33,14 @@ app.post('/usuario', async (req, res) => {
     req.on("end", async () => {
 
         const datos = Object.values(JSON.parse(body));
+        let nuevoUsuario
         try {
-            const nuevoUsuario = await newUsuario(datos[0], datos[1])
-            res.status(201)
-            res.send(nuevoUsuario)
+            nuevoUsuario = await newUsuario(datos[0], datos[1])
         } catch (error) {
             return res.status(400).send(error.message)
         }
+        res.status(201)
+        res.send(nuevoUsuario)
     })
 });
 
@@ -52,20 +54,20 @@ app.post('/transferencia', async (req, res) => {
     req.on("end", async () => {
 
         const datos = Object.values(JSON.parse(body));
+        let nuevaTransferencia
         try {
-
             const emisor = datos[0]
             const receptor = datos[1]
             const emisorId = await getIdUsuario(emisor)
             const receptorId = await getIdUsuario(receptor)
 
-            const nuevaTransferencia = await newTransferencia(emisorId, receptorId, Number(datos[2]))
-            res.status(201)
-            res.send(nuevaTransferencia)
+            nuevaTransferencia = await newTransferencia(emisorId, receptorId, Number(datos[2]))
             
         } catch (error) {
             return res.status(400).send(error.message)
         }
+        res.status(201)
+        res.json({nuevaTransferencia})
     })
 });
 

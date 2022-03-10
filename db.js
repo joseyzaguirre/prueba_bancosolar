@@ -20,14 +20,25 @@ async function getUsuarios() {
     return res.rows
 }
 
-async function getTransferencias() {
+/* async function getTransferencias() {
     const client = await pool.connect()
     const res = await client.query(
         "select * from transferencias"
     )
     client.release()
     return res.rows
+} */
+
+async function getTransferencias() {
+    const client = await pool.connect()
+    const res = await client.query({
+        text: 'select e.id, e.emisor, usuarios.nombre as receptor, e.monto, e.fecha from (select transferencias.id, usuarios.nombre as emisor, transferencias.receptor, transferencias.monto, transferencias.fecha from transferencias join usuarios on usuarios.id = transferencias.emisor) as e join usuarios on usuarios.id = e.receptor',
+        rowMode: 'array'
+    })
+    client.release()
+    return res.rows
 }
+
 
 async function newUsuario(nombre, balance) {
     const client = await pool.connect()
@@ -35,6 +46,8 @@ async function newUsuario(nombre, balance) {
         "insert into usuarios (nombre, balance) values ($1, $2) returning *",
         [nombre, balance]
     )
+    client.release()
+    return
 }
 
 async function newTransferencia(emisorId, receptorId, monto) {
@@ -43,6 +56,8 @@ async function newTransferencia(emisorId, receptorId, monto) {
         "insert into transferencias (emisor, receptor, monto) values ($1, $2, $3) returning *",
         [emisorId, receptorId, monto]
     )
+    client.release()
+    return
 }
 
 async function getIdUsuario(nombre_usuario) {
@@ -75,6 +90,7 @@ async function deleteUsuario(id) {
         [id]
     )
     client.release()
+    return
 }
 
 module.exports = { getUsuarios, getTransferencias, newUsuario, getIdUsuario, newTransferencia, editUsuario, deleteUsuario } 
