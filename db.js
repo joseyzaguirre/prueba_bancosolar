@@ -52,7 +52,29 @@ async function getIdUsuario(nombre_usuario) {
         [nombre_usuario]
     )
     client.release()
-    return res.rows
+    return res.rows[0].id
 }
 
-module.exports = { getUsuarios, getTransferencias, newUsuario, getIdUsuario, newTransferencia }
+async function editUsuario (nombre, balance, id) {
+    const client = await pool.connect()
+
+    const res = await client.query({
+        text: "update usuarios set nombre=$1, balance=$2 where id=$3",
+        values: [nombre, balance, id]
+    })
+
+    client.release()
+    return res
+}
+
+async function deleteUsuario(id) {
+    const client = await pool.connect()
+    // ejemplo de consulta con 2 parámetros
+    const res = await client.query(
+        "delete from usuarios where id=$1",
+        [id]
+    )
+    client.release()
+}
+
+module.exports = { getUsuarios, getTransferencias, newUsuario, getIdUsuario, newTransferencia, editUsuario, deleteUsuario } 
