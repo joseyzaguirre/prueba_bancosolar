@@ -50,8 +50,43 @@ async function newUsuario(nombre, balance) {
     return
 }
 
-async function newTransferencia(emisorId, receptorId, monto) {
+async function newTransferencia(emisor, receptor, emisorId, receptorId, monto) {
     const client = await pool.connect()
+
+
+    let saldoEmisor = await client.query(
+        "select balance from usuarios where nombre=$1",
+        [emisor]
+    )
+
+    let saldoReceptor = await client.query(
+        "select balance from usuarios where nombre=$1",
+        [receptor]
+    )
+    saldoEmisor = saldoEmisor.rows[0].balance
+    saldoReceptor = saldoReceptor.rows[0].balance
+
+    if (saldoEmisor < monto) {
+        console.log('Saldo insuficiente para realizar la transacción')
+        client.release()
+        return
+    } else if (emisor == receptor) {
+        console.log('No te puedes realizar una transferencia a ti mismo!')
+        client.release()
+        return
+    }
+
+    nuevoSaldoEmisor = saldoEmisor - monto;
+    nuevoSaldoReceptor = saldoReceptor + monto;
+
+    await client.query(
+        "update usuarios set balance=$1 where nombre=$2",
+        [nuevoSaldoEmisor, emisor]
+    )
+    await client.query(
+        "update usuarios set balance=$1 where nombre=$2",
+        [nuevoSaldoReceptor, receptor]
+    )
     await client.query(
         "insert into transferencias (emisor, receptor, monto) values ($1, $2, $3) returning *",
         [emisorId, receptorId, monto]

@@ -61,7 +61,7 @@ app.post('/transferencia', async (req, res) => {
             const emisorId = await getIdUsuario(emisor)
             const receptorId = await getIdUsuario(receptor)
 
-            nuevaTransferencia = await newTransferencia(emisorId, receptorId, Number(datos[2]))
+            nuevaTransferencia = await newTransferencia(emisor, receptor, emisorId, receptorId, Number(datos[2]))
             
         } catch (error) {
             return res.status(400).send(error.message)
